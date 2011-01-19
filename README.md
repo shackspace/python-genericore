@@ -29,3 +29,12 @@ Currently the python implementation has the following submodules
     * start\_loop () - calls asyncore\_loop()
     the following function is registered if the output exchange is defined
     * publish (msg) - sends a message to the output exchange
+  In addition to that, auto\_amqp.py needs to hold a "default parameter"
+  list called DEFAULT\_CONFIG. 
+
+
+
+Dependencies
+===========
+* simplejson 
+* pika
