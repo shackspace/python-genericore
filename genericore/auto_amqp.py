@@ -1,5 +1,6 @@
 import pika
-import simplejson as json, sys,time
+import sys,time
+from utils import Configurable
 import logging
 log = logging.getLogger('genericore-amqp')
 
@@ -22,27 +23,11 @@ DEFAULT_CONFIG = {
         }
       }
 
-class auto_amqp:
+class auto_amqp(Configurable):
   conn = None
-  config = DEFAULT_CONFIG
   def __init__(self,config=None):
-    if config:
-      self.load_conf(config)
-
-  def load_conf(self,new_config):
-    """ loads and merges configuration from the given dictionary """
-    #self.config.update(new_config)
-    for k,v in new_config.items():
-      if k in self.config:
-        self.config[k].update(v)
-      else:
-        self.config[k] = v
-
-  def load_conf_file(self,config_file):
-    """ loads and merges configuration directly from a file """
-    with open(config_file) as f:
-      new_conf = json.load(f,encoding='ascii')
-      self.load_conf(new_conf["genericore"])
+    Configurable.__init__(self,DEFAULT_CONFIG)
+    self.load_conf(config)
 
   def create_connection(self):
     """ starts the connection the the AMQP Serve """
@@ -77,7 +62,7 @@ class auto_amqp:
     if out['exchange']:
       log.info('generating Output Exchange'+ str(out))
       chan.exchange_declare(**out)
-      self.publish = lambda msg: chan.basic_publish(exchange=out['exchange'],routing_key='',body=msg)
+      self.publish = lambda msg: self.channel.basic_publish(exchange=out['exchange'],routing_key='',body=msg)
 
   def close_connection(self):
     self.conn.close()
