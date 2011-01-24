@@ -39,15 +39,37 @@ class Configurable(object):
       """ loads the configuration from a parser object """
 
 class Configurator(Configurable):
-  def __init__(self,PROTO_VERSION,conf=None):
+  def __init__(self,PROTO_VERSION,DESCRIPTION,conf=None):
     """ PROTO_VERSION is the protocol version of the module to configure """
     Configurable.__init__(self,conf)
     self.PROTO_VERSION = PROTO_VERSION
+    self.DESCRIPTION = DESCRIPTION
 
   def configure(self,conf_list):
-    """ configures all configurable objects with current config """
+    """ configures all configurable objects with current config 
+
+    Steps:
+    1. load DEFAULT CONFIG (implicitly loaded when instanciating)
+    2. load Config File (in eval_parser of self)
+    3. load Parameters (in every eval_parser)
+
+    Each step may overwrite already existing keys in config
+    """
+    parser = argparse.ArgumentParser(description=self.DESCRIPTION)
+
+    self.populate_parser(parser)
+    for configurable in conf_list:
+      configurable.populate_parser(parser)
+
+    args = parser.parse_args()
+
+    self.eval_parser(args)
     for i in conf_list:
       i.load_conf(self.config)
+      i.eval_parser(args)
+
+    self.blend(conf_list)
+    log.debug ('New Configuration:' + str(self.config))
 
   def blend(self,conf_list):
     """ blends all configurations of all configurables into this object """
