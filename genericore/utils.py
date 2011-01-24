@@ -39,7 +39,7 @@ class Configurable(object):
       """ loads the configuration from a parser object """
 
 class Configurator(Configurable):
-  def __init__(self,PROTO_VERSION,DESCRIPTION,conf=None):
+  def __init__(self,PROTO_VERSION=1,DESCRIPTION='description not set!',conf=None):
     """ PROTO_VERSION is the protocol version of the module to configure """
     Configurable.__init__(self,conf)
     self.PROTO_VERSION = PROTO_VERSION
@@ -59,14 +59,17 @@ class Configurator(Configurable):
 
     self.populate_parser(parser)
     for configurable in conf_list:
-      configurable.populate_parser(parser)
+      try: configurable.populate_parser(parser) 
+      except : log.warning(str(configurable.__class__) + "does not have populate_parser")
 
     args = parser.parse_args()
 
     self.eval_parser(args)
     for i in conf_list:
-      i.load_conf(self.config)
-      i.eval_parser(args)
+      try:
+        i.load_conf(self.config)
+        i.eval_parser(args)
+      except Exception as e: log.warning(str(i.__class__) + "does not have eval_parser or load_conf" + str(e))
 
     self.blend(conf_list)
     log.debug ('New Configuration:' + str(self.config))

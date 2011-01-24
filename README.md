@@ -58,3 +58,42 @@ Dependencies
 ===========
 * simplejson 
 * pika
+
+Usage
+=========
+
+This is what you normally want to do when writing a new genericore module:
+
+    conf = gen.Configurator(PROTO_VERSION,DESCRIPTION)  
+    amqp = gen.auto_amqp()   
+    s = YourMagic()  
+
+    conf.configure([amqp,s])    #set up parser and eval parsed stuff
+
+    # start network connections, probably also for your Parser (e.g. backend)
+    amqp.create_connection()
+
+    def cb (ch,method,header,body):
+      entry = s.process(json.loads(body))
+      amqp.publish(json.dumps(entry))
+
+    amqp.consume(cb)
+    amqp.start_loop()
+
+Configurator
+===========
+python-genericore provides the Configurator class which can be instanciated
+in order to do all your nasty configuration and argument parsing stuff.
+
+In order to configure YOUR Object object you may want to do the following
+things:
+* derive your class from Configurable ( to have the load\_conf magic )
+  a "config" member variable is now available with the config dictionary
+* implement populate\_parser(parser)
+  in this function you can add custom arguments to the command line parser
+  (argparse is the weaopn of choice in Configurator)
+* implement eval\_parser(args)
+  do something with the then parsed arguments
+
+These functions will be called by the Configurator when doing a configure
+for a list of modules (including your's)
