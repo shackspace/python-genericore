@@ -56,18 +56,30 @@ class Configurator(Configurable):
 
   def populate_parser(self,parser):
     parser.add_argument('-c','--config',dest='genConfig', help='configuration file',metavar='FILE') 
-    #parser.add_argument('-d','--debug_level',help='Debug Level') 
+    parser.add_argument('-d','--debug',action='store_true',help='Debug Mode') 
     parser.add_argument('--unique-key',action='store_true',   help='Unique Key')
 
   def eval_parser(self,parsed):
-    if 'genConfig' in dir(parsed):
+    """ will evaluate the parsed values 
+    genConfig   - eventually loads configuration file
+    debug       - will set logging.basicConfig(logging.DEBUG) if debug is set
+                  othewise default is logging.INFO
+    unique_key  - will print the unique key of this module to stdout and
+                  exits!
+    """
+    if parsed.genConfig:
       print 'loading file %s' % parsed.genConfig
       self.load_conf_file(parsed.genConfig)
 
-    if 'unique-key' in dir(parsed):
+    if parsed.unique_key:
       print self.generate_unique(parsed)
       sys.exit(0)
 
+    if parsed.debug:
+      logging.basicConfig(level=logging.DEBUG)
+    else:
+      logging.basicConfig(level=logging.INFO)
+
   def generate_unique(self,args):
       return (hashlib.sha1(str(self.PROTO_VERSION) + 
-        json.dumps(args,sort_keys=True)).hexdigest())
+        str(args)).hexdigest())
