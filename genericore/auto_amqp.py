@@ -87,11 +87,11 @@ class auto_amqp(Configurable):
   def eval_parser(self,parsed):
     """ loads its individual configuration from the parsed output """
     conf = self.config['amqp']['connection']
-    conf['host'] = parsed.amqpHost if 'amqpHost' in dir(parsed) else conf['host']
-    conf['port'] = parsed.amqpHost if 'amqpPort' in dir(parsed) else conf['port']
-    conf['username'] = parsed.amqpHost if 'amqpUsername' in dir(parsed) else conf['username']
-    conf['password'] = parsed.amqpHost if 'amqpPassword' in dir(parsed) else conf['password']
-    conf['heartbeat'] = parsed.amqpHost if 'amqpHeartbeat' in dir(parsed) else conf['heartbeat']
-    conf['vhost'] = parsed.amqpHost if 'amqpVhost' in dir(parsed) else conf['vhost']
+    conf['host'] = parsed.amqpHost if parsed.amqpHost else conf['host']
+    conf['port'] = parsed.amqpPort if parsed.amqpPort else conf['port']
+    conf['login'] = parsed.amqpUsername if parsed.amqpUsername else conf['login']
+    conf['password'] = parsed.amqpPassword if parsed.amqpPassword else conf['password']
+    conf['heartbeat'] = parsed.amqpHeartbeat if parsed.amqpHeartbeat in dir(parsed) else conf['heartbeat']
+    conf['vhost'] = parsed.amqpVhost if parsed.amqpVhost else conf['vhost']
 
 

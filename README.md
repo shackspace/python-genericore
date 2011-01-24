@@ -3,6 +3,11 @@ GENERICORE
 This is the python port of genericore, the generic information gathering
 framework.
 
+Disclamer
+---------
+The python-genericore and it's submodules are currently under HEAVY 
+development and may suck balls in the current state. I appologize for that.
+
 Submodules
 ==========
 Currently the python implementation has the following submodules
@@ -33,6 +38,21 @@ Currently the python implementation has the following submodules
   * close\_connection () - closes all connections, cleans up the object
   In addition to that, auto\_amqp.py needs to hold a "default parameter"
   list called DEFAULT\_CONFIG. 
+
+Configurator
+===========
+
+python-genericore provides a extensive configuration submodule whichs
+allows the modules to evaluate/mix and merge configuration files.
+
+The class *Configurable* provides a basic functionality to load
+configuration into the variable _config_ via load\_conf. this can be used
+to merge two configurations.
+
+In addition to that there is a *Configurator* class which provides basic
+functionality for parsing defaults. please see main.py of mail\_proc how to
+use these two. 
+
 
 Dependencies
 ===========

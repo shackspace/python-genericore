@@ -15,7 +15,7 @@ class Configurable(object):
     """ loads and merges configuration from the given dictionary """
     if not new_config:
       return
-    stack = [(self.config, new_config)]
+    stack = [(self.config,new_config)]
     while stack:
       current_dst, current_src = stack.pop()
       for key in current_src:
@@ -45,8 +45,15 @@ class Configurator(Configurable):
     self.PROTO_VERSION = PROTO_VERSION
 
   def configure(self,conf_list):
+    """ configures all configurable objects with current config """
     for i in conf_list:
       i.load_conf(self.config)
+
+  def blend(self,conf_list):
+    """ blends all configurations of all configurables into this object """
+    for i in conf_list:
+      self.load_conf(i.config)
+
   def populate_parser(self,parser):
     parser.add_argument('-c','--config',dest='genConfig', help='configuration file',metavar='FILE') 
     #parser.add_argument('-d','--debug_level',help='Debug Level') 
@@ -54,6 +61,7 @@ class Configurator(Configurable):
 
   def eval_parser(self,parsed):
     if 'genConfig' in dir(parsed):
+      print 'loading file %s' % parsed.genConfig
       self.load_conf_file(parsed.genConfig)
 
     if 'unique-key' in dir(parsed):
@@ -61,5 +69,5 @@ class Configurator(Configurable):
       sys.exit(0)
 
   def generate_unique(self,args):
-      print(hashlib.sha1(str(self.PROTO_VERSION) + 
+      return (hashlib.sha1(str(self.PROTO_VERSION) + 
         json.dumps(args,sort_keys=True)).hexdigest())
