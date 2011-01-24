@@ -5,6 +5,7 @@ import logging
 log = logging.getLogger('genericore-amqp')
 
 DEFAULT_CONFIG = {
+    "amqp" : {
         "connection" : {
           "login" : "guest",
           "password" : "guest",
@@ -22,6 +23,7 @@ DEFAULT_CONFIG = {
           "type" : "fanout",
         }
       }
+    }
 
 class auto_amqp(Configurable):
   conn = None
@@ -33,7 +35,7 @@ class auto_amqp(Configurable):
     """ starts the connection the the AMQP Serve """
     if self.conn:
       raise Exception("Connection already open")
-    cfg = self.config['connection']
+    cfg = self.config['amqp']['connection']
     log.debug (str(cfg))
     locals().update()
     self.conn = pika.AsyncoreConnection(pika.ConnectionParameters(
@@ -49,8 +51,8 @@ class auto_amqp(Configurable):
   def _setup_tubes(self):
     """ creates the in 'config' configured input and output """
     chan = self.channel
-    inp = self.config['in']
-    out = self.config['out']
+    inp = self.config['amqp']['in']
+    out = self.config['amqp']['out']
     if inp['exchange']:
       log.info('generating Input Queue'+ str(inp))
       chan.exchange_declare(**inp)
@@ -73,3 +75,23 @@ class auto_amqp(Configurable):
       delattr(self,'start_loo')
     if hasattr(self,'publish'):
       delattr(self,'publish')
+
+  def populate_parser(self,parser):
+    """ populates an argparse parser """
+    parser.add_argument('-s','--host',dest='amqpHost', help='AMQP host ip address',metavar='HOST')
+    parser.add_argument('--port',type=int,dest='amqpPort',help='AMQP host port',metavar='PORT') 
+    parser.add_argument('-u','--username',dest='amqpUsername', help='AMQP username',metavar='USER') 
+    parser.add_argument('-p','--password',dest='amqpPassword',help='AMQP password',metavar='PASS') 
+    parser.add_argument('-b','--heartbeat',dest='amqpHeartbeat',type=int,help='AMQP Heartbeat value',metavar='SECONDS') 
+    parser.add_argument('-v','--vhost',dest='amqpVhost',help='AMQP vhost definition',metavar='VHOST') 
+  def eval_parser(self,parsed):
+    """ loads its individual configuration from the parsed output """
+    conf = self.config['amqp']['connection']
+    conf['host'] = parsed.amqpHost if 'amqpHost' in dir(parsed) else conf['host']
+    conf['port'] = parsed.amqpHost if 'amqpPort' in dir(parsed) else conf['port']
+    conf['username'] = parsed.amqpHost if 'amqpUsername' in dir(parsed) else conf['username']
+    conf['password'] = parsed.amqpHost if 'amqpPassword' in dir(parsed) else conf['password']
+    conf['heartbeat'] = parsed.amqpHost if 'amqpHeartbeat' in dir(parsed) else conf['heartbeat']
+    conf['vhost'] = parsed.amqpHost if 'amqpVhost' in dir(parsed) else conf['vhost']
+
+

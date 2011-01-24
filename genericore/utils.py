@@ -1,30 +1,15 @@
 #parses all "default" parser values with argparse
 
-import argparse,hashlib
+import argparse,hashlib,sys
 import logging
 import simplejson as json #need to decode in ascii
 log = logging.getLogger('genericore-utils')
-def parse_default(parser):
-  parser.add_argument('-s','--host',default='141.31.8.11',      help='AMQP host ip address')
-  parser.add_argument('--port',type=int,default=5672,      help='AMQP host port')
-  parser.add_argument('-u','--username',default='shack',   help='AMQP username') 
-  parser.add_argument('-c','--config',default='',   help='configuration file') 
-  parser.add_argument('-p','--password',default='guest',   help='AMQP password') 
-  parser.add_argument('-b','--heartbeat',type=int,default=0,help='AMQP Heartbeat value') 
-  parser.add_argument('-v','--vhost',default='/',help='AMQP vhost definition') 
-  parser.add_argument('-d','--debug_level',default='/',help='AMQP vhost definition') 
-  parser.add_argument('--unique-key',action='store_true',   help='Unique Key')
-
-def generate_unique(PROTO_VERSION,args):
-  return hashlib.sha1(str(PROTO_VERSION) + 
-      json.dumps(args,sort_keys=True)).hexdigest()
 
 class Configurable(object):
   config = {}
 
   def __init__(self,config=None):
-    if config:
-      self.load_conf(config)
+    self.load_conf(config)
 
   def load_conf(self,new_config):
     """ loads and merges configuration from the given dictionary """
@@ -49,4 +34,32 @@ class Configurable(object):
       return
     with open(config_file) as f:
       new_conf = json.load(f,encoding='ascii')
-      self.load_conf(new_conf["genericore"])
+      self.load_conf(new_conf)
+    def load_conf_parser(self,parser):
+      """ loads the configuration from a parser object """
+
+class Configurator(Configurable):
+  def __init__(self,PROTO_VERSION,conf=None):
+    """ PROTO_VERSION is the protocol version of the module to configure """
+    Configurable.__init__(self,conf)
+    self.PROTO_VERSION = PROTO_VERSION
+
+  def configure(self,conf_list):
+    for i in conf_list:
+      i.load_conf(self.config)
+  def populate_parser(self,parser):
+    parser.add_argument('-c','--config',dest='genConfig', help='configuration file',metavar='FILE') 
+    #parser.add_argument('-d','--debug_level',help='Debug Level') 
+    parser.add_argument('--unique-key',action='store_true',   help='Unique Key')
+
+  def eval_parser(self,parsed):
+    if 'genConfig' in dir(parsed):
+      self.load_conf_file(parsed.genConfig)
+
+    if 'unique-key' in dir(parsed):
+      print self.generate_unique(parsed)
+      sys.exit(0)
+
+  def generate_unique(self,args):
+      print(hashlib.sha1(str(self.PROTO_VERSION) + 
+        json.dumps(args,sort_keys=True)).hexdigest())
