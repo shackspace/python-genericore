@@ -14,34 +14,10 @@ Currently the python implementation has the following submodules
 
 * utils.py - a number of functions which define "common patterns" in all
   genericore plugins (e.g. commandline parser or unique-id generator)
-  * parse\_default (argparse ) : adds default parser parameters
-  * generate\_unique (VERSION, config) : generates a unique id from the
-    Version number of the script and the configuration given
-* auto\_amqp.py - the amqp connector class which provides the following
-  functions:
-  * load\_conf(dict) - loads and merges configuration from the given dictionary
-
-  * load\_conf\_file(fname) - loads and merges configuration directly from a file
-
-  * create\_connection() - starts the connection the the AMQP Server
-
-  * [internal] \_setup\_tubes() - creates the in 'config' configured input and output
-    queues/exchanges. will be called by create_connection
-    in addition it registers the following functions if input exchange is
-    defined:
-    * consume (callback) - calls amqp's basic\_consume with the correct
-      params
-    * start\_loop () - calls asyncore\_loop()
-    the following function is registered if the output exchange is defined
-    * publish (msg) - sends a message to the output exchange
-
-  * close\_connection () - closes all connections, cleans up the object
-  In addition to that, auto\_amqp.py needs to hold a "default parameter"
-  list called DEFAULT\_CONFIG. 
+* 
 
 Configurator
-===========
-
+------------
 python-genericore provides a extensive configuration submodule whichs
 allows the modules to evaluate/mix and merge configuration files.
 
@@ -53,14 +29,39 @@ In addition to that there is a *Configurator* class which provides basic
 functionality for parsing defaults. please see main.py of mail\_proc how to
 use these two. 
 
+configure your own class
+------------
+python-genericore provides the Configurator class which can be instanciated
+in order to do all your nasty configuration and argument parsing stuff.
+
+In order to configure YOUR Object object you may want to do the following
+things:
+* derive your class from Configurable ( to have the load\_conf magic )
+  a "config" member variable is now available with the config dictionary
+* implement populate\_parser(parser)
+  in this function you can add custom arguments to the command line parser
+  (argparse is the weaopn of choice in Configurator)
+* implement eval\_parser(args)
+  do something with the then parsed arguments
+
+These functions will be called by the Configurator when doing a configure
+for a list of modules (including your's)
+
 
 Dependencies
 ===========
 * simplejson 
 * pika
 
+Install
+===========
+#clone this repository
+$ sudo ./setup install
+
 Usage
 =========
+Configurator
+------------
 
 This is what you normally want to do when writing a new genericore module:
 
@@ -80,20 +81,38 @@ This is what you normally want to do when writing a new genericore module:
     amqp.consume(cb)
     amqp.start_loop()
 
-Configurator
-===========
-python-genericore provides the Configurator class which can be instanciated
-in order to do all your nasty configuration and argument parsing stuff.
+MongoConnect
+------------
+You can derive YourMagic from the MongoConnect class for having a fresh
+database connection AND all the parser magic included. It looks like this:
 
-In order to configure YOUR Object object you may want to do the following
-things:
-* derive your class from Configurable ( to have the load\_conf magic )
-  a "config" member variable is now available with the config dictionary
-* implement populate\_parser(parser)
-  in this function you can add custom arguments to the command line parser
-  (argparse is the weaopn of choice in Configurator)
-* implement eval\_parser(args)
-  do something with the then parsed arguments
+    MODULE_NAME = 'mail_proc'
 
-These functions will be called by the Configurator when doing a configure
-for a list of modules (including your's)
+    MODULE_NAME='YourMagic'
+    DEFAULT_CONFIG = {
+      MODULE_NAME : {
+        "database" : {
+          "collection" : "magic"
+        }
+      }
+    }
+
+    class YourMagic(MongoConnect): #MongoConnect derives from Configurable!
+      
+      def __init__(self,conf=None):
+        MongoConnect.__init__(self,MODULE_NAME,DEFAULT_CONFIG)
+        self.load_conf(conf)
+
+      def process(self,mail):
+        #insert your magic here
+        return reply
+
+      def populate_parser(self,parser): 
+        MongoConnect.populate_parser(self,parser)
+        # your configuration
+
+      def eval_parser(self,parsed): 
+        MongoConnect.eval_parser(self,parsed)
+        # your config evaulation
+
+

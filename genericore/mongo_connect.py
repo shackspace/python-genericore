@@ -8,28 +8,32 @@ log = logging.getLogger('MongoConnect')
 # this is the "sub-configuration" of the given module name
 GENERIC_CONFIG = {
     "mongodb" : {
-      "host" : "localhost"
+      "host" : "localhost",
     },
-    "collection" : {
-      "name" : "mail_user_stats",
+    "database" : {
+      "database" : "genericore",
+      "collection" : "generic",
       "drop_collection" : False
     }
 }
 class MongoConnect(Configurable):
 
   def create_connection(self): 
+
     conf = self.config[self.MODULE_NAME]
-    coll_conf = conf['collection']
+    dconf = conf['database']
     try:
       self.conn = Connection(**conf['mongodb'])
-      self.db = self.conn[coll_conf['name']]
-    except Exception as e:
-      log.error('Mongodb not running or unreachable ! Bailing out' + str(e))
-      sys.exit(0)
 
-    if coll_conf ['drop_collection'] : 
+
+      self.db = self.conn[dconf['database']]
+    except Exception as e:
+      log.error('Mongodb not running or unreachable ! Bailing out:\n' + str(e))
+      sys.exit(0)
+    print dconf
+    if dconf['drop_collection'] : 
       log.info('dropping collection due to public demand')
-      self.db.drop()
+      self.db[dconf['collection']].drop()
 
   def __init__(self,MODULE_NAME='mongo_connect',conf=None):
     self.MODULE_NAME = MODULE_NAME
@@ -50,7 +54,7 @@ class MongoConnect(Configurable):
   def eval_parser(self,parsed): 
     conf = self.config[self.MODULE_NAME]
     mconf = conf['mongodb']
-    cconf = conf['collection']
+    dconf = conf['database']
     mconf['host'] = parsed.mongohost if parsed.mongohost else mconf['host']
-    cconf['name'] = parsed.collection if parsed.collection else cconf['name']
-    cconf['drop_collection'] = parsed.drop_collection
+    dconf['collection'] = parsed.collection if parsed.collection else dconf['collection']
+    dconf['drop_collection'] = parsed.drop_collection
