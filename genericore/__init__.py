@@ -6,6 +6,7 @@ __author__ = [
 ]
 #__license__
 __contributors__ = ''
-import auto_amqp,utils
+import auto_amqp,utils, mongo_connect
 from auto_amqp import *
 from utils import *
+from mongo_connect import *

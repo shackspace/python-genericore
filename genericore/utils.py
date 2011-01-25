@@ -6,8 +6,8 @@ import simplejson as json #need to decode in ascii
 log = logging.getLogger('genericore-utils')
 
 class Configurable(object):
-  config = {}
 
+  config = {}
   def __init__(self,config=None):
     self.load_conf(config)
 
@@ -60,7 +60,7 @@ class Configurator(Configurable):
     self.populate_parser(parser)
     for configurable in conf_list:
       try: configurable.populate_parser(parser) 
-      except : log.warning(str(configurable.__class__) + "does not have populate_parser")
+      except Exception as e: print (str(configurable.__class__) + "does not have populate_parser" + str(e))
 
     args = parser.parse_args()
 
@@ -69,7 +69,7 @@ class Configurator(Configurable):
       try:
         i.load_conf(self.config)
         i.eval_parser(args)
-      except Exception as e: log.warning(str(i.__class__) + "does not have eval_parser or load_conf" + str(e))
+      except Exception as e: print (str(i.__class__) + "does not have eval_parser or load_conf" + str(e))
 
     self.blend(conf_list)
     log.debug ('New Configuration:' + str(self.config))
