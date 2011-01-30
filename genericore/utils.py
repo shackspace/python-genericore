@@ -1,7 +1,7 @@
 #parses all "default" parser values with argparse
 
 import argparse,hashlib,sys
-import logging
+import logging,copy
 import simplejson as json #need to decode in ascii
 log = logging.getLogger('genericore-utils')
 
@@ -15,6 +15,7 @@ class Configurable(object):
     """ loads and merges configuration from the given dictionary """
     if not new_config:
       return
+    self.config = copy.deepcopy(self.config)
     stack = [(self.config,new_config)]
     while stack:
       current_dst, current_src = stack.pop()
@@ -71,11 +72,13 @@ class Configurator(Configurable):
         i.eval_parser(args)
       except Exception as e: print (str(i.__class__) + "does not have eval_parser or load_conf" + str(e))
 
-    self.blend(conf_list)
-    log.debug ('New Configuration:' + str(self.config))
+    #self.blend(conf_list)
+    #log.debug ('New Configuration:' + str(self.config))
 
-  def blend(self,conf_list):
-    """ blends all configurations of all configurables into this object """
+  def _blend(self,conf_list):
+    """ blends all configurations of all configurables into this object 
+        WARNING: This function is considered harmful! DO NOT USE 
+    """
     for i in conf_list:
       self.load_conf(i.config)
 

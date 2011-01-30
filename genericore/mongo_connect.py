@@ -19,21 +19,36 @@ GENERIC_CONFIG = {
 class MongoConnect(Configurable):
 
   def create_connection(self): 
-
+    """ Will create a connection to the mongodb and, if wanted by user
+    ('drop_collection' in config is set True) clean up the database,
+    clean up the collection 
+    will set following member variables:
+    conn - the connection to the database
+    db   - the open database in the mongodb
+    coll - the open collection (similar to table in relational db)
+    """
     conf = self.config[self.MODULE_NAME]
     dconf = conf['database']
     try:
       self.conn = Connection(**conf['mongodb'])
 
-
       self.db = self.conn[dconf['database']]
+      self.coll = self.db[dconf['collection']]
     except Exception as e:
       log.error('Mongodb not running or unreachable ! Bailing out:\n' + str(e))
       sys.exit(0)
     print dconf
     if dconf['drop_collection'] : 
       log.info('dropping collection due to public demand')
-      self.db[dconf['collection']].drop()
+      self.drop_collection()
+
+  def drop_collection(self,collection=None):
+    """ will drop a given collection (via collection name) from the open
+    database object self.db --> delete all data from collection """
+    if not collection:
+      self.coll.drop()
+    else:
+      self.db[collection].drop()
 
   def __init__(self,MODULE_NAME='mongo_connect',conf=None):
     self.MODULE_NAME = MODULE_NAME
