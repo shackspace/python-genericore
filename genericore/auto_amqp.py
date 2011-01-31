@@ -27,16 +27,22 @@ DEFAULT_CONFIG = {
 
 class auto_amqp(Configurable):
   conn = None
-  def __init__(self,config=None):
-    Configurable.__init__(self,DEFAULT_CONFIG)
+  def __init__(self,MODULE_NAME='auto_amqp',config=None):
+    """ constructor if auto_amqp
+    MODULE_NAME is important to distinguish the namespaces for the
+    different Objects"""
+    newConfig = {}
+    newConfig[MODULE_NAME] = DEFAULT_CONFIG
+    Configurable.__init__(self)
     self.load_conf(config)
+    self.MODULE_NAME = MODULE_NAME
     
 
   def create_connection(self):
     """ starts the connection the the AMQP Serve """
     if self.conn:
       raise Exception("Connection already open")
-    cfg = self.config['amqp']['connection']
+    cfg = self.config[self.MODULE_NAME]['amqp']['connection']
     log.debug(str(cfg))
     self.conn = pika.AsyncoreConnection(pika.ConnectionParameters(
           credentials = pika.PlainCredentials(cfg['login'],cfg['password']), 
@@ -51,8 +57,8 @@ class auto_amqp(Configurable):
   def _setup_tubes(self):
     """ creates the in 'config' configured input and output """
     chan = self.channel
-    inp = self.config['amqp']['in']
-    out = self.config['amqp']['out']
+    inp = self.config[self.MODULE_NAME]['amqp']['in']
+    out = self.config[self.MODULE_NAME]['amqp']['out']
     if inp['exchange']:
       log.info('generating Input Queue'+ str(inp))
       chan.exchange_declare(**inp)
@@ -86,7 +92,7 @@ class auto_amqp(Configurable):
     parser.add_argument('-v','--vhost',dest='amqpVhost',help='AMQP vhost definition',metavar='VHOST') 
   def eval_parser(self,parsed):
     """ loads its individual configuration from the parsed output """
-    conf = self.config['amqp']['connection']
+    conf = self.config[self.MODULE_NAME]['amqp']['connection']
     conf['host'] = parsed.amqpHost if parsed.amqpHost else conf['host']
     conf['port'] = parsed.amqpPort if parsed.amqpPort else conf['port']
     conf['login'] = parsed.amqpUsername if parsed.amqpUsername else conf['login']

@@ -15,6 +15,7 @@ DEFAULT_CONFIG = {
       "vhost" : "/"
       },
     "exchanges" : { 
+      # ======== Example =========
       #"basic" : { 
       #  "in" : {
       #    "exchange" : False,
@@ -38,8 +39,10 @@ class multi_amqp(Configurable):
   create multiple 'tubes' (input and output exchanges),
   the configuration therefore looks a bit different"""
   conn = None
-  def __init__(self,config=None):
-    Configurable.__init__(self,DEFAULT_CONFIG)
+  def __init__(self,MODULE_NAME='multi_amqp',config=None):
+    self.NAME = MODULE_NAME
+    newConfig = { MODULE_NAME : DEFAULT_CONFIG}
+    Configurable.__init__(self,newConfig)
     self.load_conf(config)
     
 
@@ -47,7 +50,7 @@ class multi_amqp(Configurable):
     """ starts the connection the the AMQP Serve """
     if self.conn:
       raise Exception("Connection already open")
-    cfg = self.config['amqp']['connection']
+    cfg = self.config[self.NAME]['amqp']['connection']
     log.debug(str(cfg))
     self.conn = pika.AsyncoreConnection(pika.ConnectionParameters(
           credentials = pika.PlainCredentials(cfg['login'],cfg['password']), 
@@ -65,8 +68,8 @@ class multi_amqp(Configurable):
     """ creates the in 'config' configured input and output """
     chan = self.channel
     ret = []
-    print self.config['amqp']['exchanges']
-    for k,v in self.config['amqp']['exchanges'].items():
+    print self.config[self.NAME]['amqp']['exchanges']
+    for k,v in self.config[self.NAME]['amqp']['exchanges'].items():
       o = C()
       inp = v['in']  if 'in' in v else None
       out = v['out'] if 'out' in v  else None
@@ -106,7 +109,7 @@ class multi_amqp(Configurable):
 
   def eval_parser(self,parsed):
     """ loads its individual configuration from the parsed output """
-    conf = self.config['amqp']['connection']
+    conf = self.config[self.NAME]['amqp']['connection']
     conf['host'] = parsed.amqpHost if parsed.amqpHost else conf['host']
     conf['port'] = parsed.amqpPort if parsed.amqpPort else conf['port']
     conf['login'] = parsed.amqpUsername if parsed.amqpUsername else conf['login']
