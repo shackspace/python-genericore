@@ -59,7 +59,7 @@ class MongoConnect(Configurable):
     self.load_conf(conf)
 
   def close_connection(self): 
-    self.conn.close()
+    self.conn.disconnect()
 
   def populate_parser(self,parser): 
     parser.add_argument('--mongohost',metavar='HOST',help='Mongodb Host')
