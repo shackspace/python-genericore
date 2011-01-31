@@ -58,7 +58,7 @@ class MongoConnect(Configurable):
     Configurable.__init__(self,newConfig)
     self.load_conf(conf)
 
-  def close(self): 
+  def close_connection(self): 
     self.conn.close()
 
   def populate_parser(self,parser): 

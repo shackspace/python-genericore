@@ -31,9 +31,8 @@ class auto_amqp(Configurable):
     """ constructor if auto_amqp
     MODULE_NAME is important to distinguish the namespaces for the
     different Objects"""
-    newConfig = {}
-    newConfig[MODULE_NAME] = DEFAULT_CONFIG
-    Configurable.__init__(self)
+    newConfig = { MODULE_NAME : DEFAULT_CONFIG}
+    Configurable.__init__(self,newConfig)
     self.load_conf(config)
     self.MODULE_NAME = MODULE_NAME
     
