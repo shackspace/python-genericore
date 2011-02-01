@@ -36,8 +36,6 @@ class Configurable(object):
     with open(config_file) as f:
       new_conf = json.load(f,encoding='ascii')
       self.load_conf(new_conf)
-    def load_conf_parser(self,parser):
-      """ loads the configuration from a parser object """
 
 class Configurator(Configurable):
   def __init__(self,PROTO_VERSION=1,DESCRIPTION='description not set!',conf=None):

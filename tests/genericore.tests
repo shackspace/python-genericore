@@ -1,13 +1,13 @@
 Test Cases
 ==========
 1. Configurable
-1.1. Load via Constructor
+(x) 1.1. Load via Constructor  
   - create new class and derive from Configurable
   - Check if sample config is loaded correctly
-1.2 Load via load_conf
+(x) 1.2 Load via load_conf
   - create new class, use load_conf
   - check if sample config is loaded correctly
-1.3 Load via load_conf_file
+(x) 1.3 Load via load_conf_file
   - create new Configurable Class, use load_conf_file to load sample config
   - check if sample config is loaded correctly
 
