@@ -80,15 +80,17 @@ class multi_amqp(Configurable):
         inp['type'] = inp['type'] if 'type' in inp else 'fanout'
         chan.exchange_declare(**inp)
         o.qname = chan.queue_declare(exclusive=True).queue
+        o.inp = inp['exchange']
         chan.queue_bind(exchange=inp['exchange'],queue=o.qname)
-        o.consume = lambda cb : chan.basic_consume(cb,queue=o.qname,no_ack=True)
+        o.consume = lambda cb,queue : chan.basic_consume(cb,queue=queue,no_ack=True)
         o.start_loop = lambda : pika.asyncore_loop()
 
       if out and out['exchange']:
         out['type'] = out['type'] if 'type' in out else 'fanout'
         log.info('generating Output Exchange'+ str(out))
         chan.exchange_declare(**out)
-        o.publish = lambda msg: self.channel.basic_publish(exchange=out['exchange'],routing_key='',body=msg)
+        o.out = out['exchange']
+        o.publish = lambda msg,exchange: self.channel.basic_publish(exchange=exchange,routing_key='',body=msg)
       ret.append(o)
     print ret
     return ret
