@@ -1,3 +1,5 @@
+migrated to new location: https://codeberg.org/shackspace/python-genericore
+
 GENERICORE
 ==========
 This is the python port of genericore, the generic information gathering
